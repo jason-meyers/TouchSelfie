@@ -4,6 +4,8 @@ import glob
 import os
 import os.path
 import time
+import csv
+
 try:
     import picamera as mycamera
 except ImportError:
@@ -97,7 +99,7 @@ def setLights(r, g, b):
 #    ser.write(rgb_command)
 
 def snap(can, countdown1, effect='None'):
-    global image_idx
+    global image_idx, new_filename
 
     try:
         if custom.ARCHIVE and os.path.exists(custom.archive_dir) and os.path.exists(custom.PROC_FILENAME):
@@ -184,11 +186,35 @@ def findser():
     return SERIAL
 
 
-def googleUpload(filen):
+def googleUpload(filen,optionalAlbumId=custom.albumID):
     #upload to picasa album
-    if custom.albumID != 'None':
-        album_url ='/data/feed/api/user/%s/albumid/%s' % (config.username, custom.albumID)
+    if optionalAlbumId != 'None':
+        album_url ='/data/feed/api/user/%s/albumid/%s' % (config.username, optionalAlbumId)
         photo = client.InsertPhotoSimple(album_url,'NoVa Snap',custom.photoCaption, filen ,content_type='image/jpeg')
     else:
         raise ValueError("albumID not set")
         
+
+#JMM
+def saveUploadForLater(filen):
+  f= open(os.path.join(custom.archive_dir, "NOTUPLOADED.csv"),"w+")
+  f.write('{0},{1}\n'.format(custom.albumID,new_filename))
+  f.close()
+
+def googleUploadSavedFiles():
+  bad_rows = []
+  try:
+    with open(os.path.join(custom.archive_dir, "NOTUPLOADED.csv"), 'rb') as csvfile:
+     csvreader = csv.reader(csvfile)
+     try:
+       for row in csvreader:
+         if os.path.exists(row[1]):
+           googleUpload(row[1],row[0])
+     except:
+        bad_rows.append(row)
+  finally:
+    with open(os.path.join(custom.archive_dir, "NOTUPLOADED.csv"), 'w') as csvfile:
+      for row in bad_rows:
+        csvfile.write('{0}\n'.format(row))
+           
+     

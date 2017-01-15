@@ -194,7 +194,11 @@ def check_and_snap(force=False, countdown1=None):
                         tkMessageBox.showinfo("Upload Error", str(e) +
                                               '\nUpload Failed:%s' % e)
                     
-                    # signed_in = False
+            # signed_in = False
+            #JMM
+            else: 
+              saveUploadForLater(custom.PROC_FILENAME)
+
             can.delete("text")
             # can.create_text(WIDTH/2, HEIGHT - STATUS_H_OFFSET, text="Press button when ready", font=custom.CANVAS_FONT, tags="text")
             can.update()
@@ -340,14 +344,20 @@ if not signed_in:
 
 ### take the first photo (no delay)
 can.delete("text")
-can.create_text(WIDTH/2, HEIGHT/2, text="SMILE ;-)", font=custom.CANVAS_FONT, tags="splash")
-can.update()
-force_snap(countdown1=0)
+#JMM - do not take picture on startup
+##can.create_text(WIDTH/2, HEIGHT/2, text="SMILE ;-)", font=custom.CANVAS_FONT, tags="splash")
+##can.update()
+##force_snap(countdown1=0)
 
 ### check button after waiting for 200 ms
 root.after(200, check_and_snap)
 if custom.SIGN_ME_IN:
     root.after(custom.oauth2_refresh_period, refresh_oauth2_credentials)
+
+#JMM upload any archived files
+if signed_in:
+  googleUploadSavedFiles()
+
 root.wm_title("Wyolum Photobooth")
 etext.focus_set()
 # etext.bind("<Enter>", sendPic)
